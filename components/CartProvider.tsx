@@ -8,6 +8,8 @@ interface CartContextValue {
   isOpen: boolean;
   addItem: (producto: Producto) => void;
   removeItem: (productoId: string) => void;
+  updateQuantity: (productoId: string, cantidad: number) => void;
+  clearItems: () => void;
   setOpen: (open: boolean) => void;
   total: number;
   count: number;
@@ -51,12 +53,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems((prev) => prev.filter((i) => i.id !== productoId));
   }
 
+  function updateQuantity(productoId: string, cantidad: number) {
+    if (cantidad < 1) {
+      removeItem(productoId);
+      return;
+    }
+    setItems((prev) => prev.map((i) => (i.id === productoId ? { ...i, cantidad } : i)));
+  }
+
+  function clearItems() {
+    setItems([]);
+  }
+
   const total = items.reduce((sum, i) => sum + i.precio * i.cantidad, 0);
   const count = items.reduce((sum, i) => sum + i.cantidad, 0);
 
   return (
     <CartContext.Provider
-      value={{ items, isOpen, addItem, removeItem, setOpen: setIsOpen, total, count }}
+      value={{ items, isOpen, addItem, removeItem, updateQuantity, clearItems, setOpen: setIsOpen, total, count }}
     >
       {children}
     </CartContext.Provider>

@@ -116,7 +116,7 @@ async function createOrderForStore(params: CreateOrderGroupParams): Promise<Crea
     detalleProductos,
     "",
     `Subtotal productos: $ ${totalProductos.toLocaleString("es-AR")}`,
-    `Envío (${distanciaKm} km ref.): $ ${costoEnvio.toLocaleString("es-AR")}`,
+    `Envío: $ ${costoEnvio.toLocaleString("es-AR")}`,
     `Total: $ ${totalPedido.toLocaleString("es-AR")}`,
     "",
     `ID pedido: ${pedidoId.slice(0, 8)}`,

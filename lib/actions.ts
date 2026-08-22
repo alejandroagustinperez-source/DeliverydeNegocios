@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "crypto";
 import { supabase } from "./supabase";
 import { calcularCostoEnvio } from "./data";
 
@@ -47,33 +48,31 @@ async function createOrderForStore(params: CreateOrderGroupParams): Promise<Crea
   const distanciaEstimadaKm = 3; // TODO: reemplazar por distancia real (Google Maps Distance Matrix API)
   const costoEnvio = calcularCostoEnvio(distanciaEstimadaKm);
   const totalPedido = totalProductos + costoEnvio;
+  const pedidoId = randomUUID();
 
-  const { data: pedido, error: pedidoError } = await supabase
-    .from("pedidos")
-    .insert({
-      comercio_id: params.comercioId,
-      cliente_nombre: params.clienteNombre,
-      cliente_telefono: params.clienteTelefono,
-      direccion_entrega: params.direccionEntrega,
-      distancia_km: distanciaEstimadaKm,
-      costo_envio: costoEnvio,
-      total_productos: totalProductos,
-      total_pedido: totalPedido,
-      estado: "pendiente",
-    })
-    .select()
-    .single();
+  const { error: pedidoError } = await supabase.from("pedidos").insert({
+    id: pedidoId,
+    comercio_id: params.comercioId,
+    cliente_nombre: params.clienteNombre,
+    cliente_telefono: params.clienteTelefono,
+    direccion_entrega: params.direccionEntrega,
+    distancia_km: distanciaEstimadaKm,
+    costo_envio: costoEnvio,
+    total_productos: totalProductos,
+    total_pedido: totalPedido,
+    estado: "pendiente",
+  });
 
-  if (pedidoError || !pedido) {
+  if (pedidoError) {
     return {
       success: false,
       comercioId: params.comercioId,
-      error: pedidoError?.message ?? "No se pudo crear el pedido.",
+      error: pedidoError.message,
     };
   }
 
   const itemsToInsert = params.items.map((i) => ({
-    pedido_id: pedido.id,
+    pedido_id: pedidoId,
     producto_id: i.productoId,
     cantidad: i.cantidad,
     precio_unitario: i.precio,
@@ -85,7 +84,7 @@ async function createOrderForStore(params: CreateOrderGroupParams): Promise<Crea
     return { success: false, comercioId: params.comercioId, error: itemsError.message };
   }
 
-  return { success: true, orderId: pedido.id, comercioId: params.comercioId };
+  return { success: true, orderId: pedidoId, comercioId: params.comercioId };
 }
 
 export interface CheckoutCartItem {

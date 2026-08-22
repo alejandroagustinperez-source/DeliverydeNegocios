@@ -3,6 +3,7 @@ import {
   rubros as rubrosEjemplo,
   comercios as comerciosEjemplo,
   productos as productosEjemplo,
+  normalizeText,
 } from "./data";
 import { Rubro, Comercio, Producto } from "./types";
 
@@ -94,4 +95,85 @@ export async function getProductosPorComercio(comercioId: string): Promise<Produ
     icono: p.icono,
     entregaHoy: true,
   }));
+}
+
+/** Trae todos los comercios activos, sin importar el rubro. Se usa para el buscador global. */
+export async function getTodosLosComercios(): Promise<Comercio[]> {
+  if (!supabase) return comerciosEjemplo;
+  const { data, error } = await supabase.from("comercios").select("*").eq("activo", true);
+  if (error || !data) return comerciosEjemplo;
+  return data.map((c) => ({
+    id: c.id,
+    rubroId: c.rubro_id,
+    nombre: c.nombre,
+    direccion: c.direccion,
+    telefono: c.telefono ?? undefined,
+    horario: { apertura: Number(c.horario_apertura), cierre: Number(c.horario_cierre) },
+    tags: [],
+    rating: c.rating ? Number(c.rating) : 5,
+    latitud: c.latitud ?? undefined,
+    longitud: c.longitud ?? undefined,
+  }));
+}
+
+export interface ProductoConComercio extends Producto {
+  comercioNombre: string;
+  rubroId: string;
+}
+
+/** Trae todos los productos activos junto con el nombre y rubro de su comercio. */
+export async function getTodosLosProductosConComercio(): Promise<ProductoConComercio[]> {
+  if (!supabase) {
+    return productosEjemplo.map((p) => {
+      const comercio = comerciosEjemplo.find((c) => c.id === p.comercioId);
+      return { ...p, comercioNombre: comercio?.nombre ?? "Comercio", rubroId: comercio?.rubroId ?? "auto" };
+    });
+  }
+  const { data, error } = await supabase
+    .from("productos")
+    .select("*, comercios(nombre, rubro_id)")
+    .eq("activo", true);
+  if (error || !data) {
+    return productosEjemplo.map((p) => {
+      const comercio = comerciosEjemplo.find((c) => c.id === p.comercioId);
+      return { ...p, comercioNombre: comercio?.nombre ?? "Comercio", rubroId: comercio?.rubroId ?? "auto" };
+    });
+  }
+  return (data as unknown as Array<Record<string, unknown>>).map((p) => {
+    const comercioRaw = p.comercios as { nombre: string; rubro_id: string } | null;
+    return {
+      id: p.id as string,
+      comercioId: p.comercio_id as string,
+      nombre: p.nombre as string,
+      precio: Number(p.precio),
+      categoria: p.categoria as string,
+      icono: p.icono as Producto["icono"],
+      entregaHoy: true,
+      comercioNombre: comercioRaw?.nombre ?? "Comercio",
+      rubroId: comercioRaw?.rubro_id ?? "auto",
+    };
+  });
+}
+
+export interface ResultadoBusqueda {
+  comercios: Comercio[];
+  productos: ProductoConComercio[];
+}
+
+/** Búsqueda global: coincidencia aproximada de texto en nombres de comercio y de producto. */
+export async function buscarGlobal(query: string): Promise<ResultadoBusqueda> {
+  const q = normalizeText(query.trim());
+  if (!q) return { comercios: [], productos: [] };
+
+  const [todosComercios, todosProductos] = await Promise.all([
+    getTodosLosComercios(),
+    getTodosLosProductosConComercio(),
+  ]);
+
+  const comercios = todosComercios.filter((c) => normalizeText(c.nombre).includes(q));
+  const productos = todosProductos.filter(
+    (p) => normalizeText(p.nombre).includes(q) || normalizeText(p.categoria).includes(q)
+  );
+
+  return { comercios, productos };
 }

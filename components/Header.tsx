@@ -17,16 +17,17 @@ export function Header() {
           Marketplace<span className="text-accent">SL</span>
         </Link>
 
-        <div className="flex-1 min-w-[220px] flex bg-white rounded-lg overflow-hidden">
+        <form action="/buscar" method="GET" className="flex-1 min-w-[220px] flex bg-white rounded-lg overflow-hidden">
           <input
             type="text"
+            name="q"
             placeholder="Buscar rubros, locales o productos..."
             className="flex-1 px-3.5 py-2.5 text-sm outline-none"
           />
-          <button className="bg-accent px-4 flex items-center text-white">
+          <button type="submit" className="bg-accent px-4 flex items-center text-white">
             <Icon name="search" className="w-4 h-4" />
           </button>
-        </div>
+        </form>
 
         <div className="hidden sm:flex items-center gap-1.5 text-[13px] text-white/70 whitespace-nowrap">
           <Icon name="pin" className="w-3.5 h-3.5" />

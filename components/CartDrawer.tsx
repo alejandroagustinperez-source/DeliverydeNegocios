@@ -75,7 +75,10 @@ export function CartDrawer() {
           "",
           `Localidad: ${zona?.nombre ?? ""}`,
           `Dirección: ${direccion}`,
-          `Total productos: $${total.toLocaleString("es-AR")}`,
+          "",
+          `Subtotal productos: $${total.toLocaleString("es-AR")}`,
+          `Envío: $${envioTotal.toLocaleString("es-AR")}`,
+          `Total: $${totalConEnvio.toLocaleString("es-AR")}`,
           "",
           "¡Gracias!",
         ].join("\n");

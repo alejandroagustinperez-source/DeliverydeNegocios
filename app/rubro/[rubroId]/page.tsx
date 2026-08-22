@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { rubros, getComerciosPorRubro } from "@/lib/data";
+import { getRubro, getComerciosPorRubro, getProductosPorComercio } from "@/lib/queries";
 import { StoreCard } from "@/components/StoreCard";
 import { Breadcrumb } from "@/components/Breadcrumb";
 
@@ -9,10 +9,16 @@ export default async function RubroPage({
   params: Promise<{ rubroId: string }>;
 }) {
   const { rubroId } = await params;
-  const rubro = rubros.find((r) => r.id === rubroId);
+  const rubro = await getRubro(rubroId);
   if (!rubro || !rubro.disponible) notFound();
 
-  const comercios = getComerciosPorRubro(rubroId);
+  const comercios = await getComerciosPorRubro(rubroId);
+  const comerciosConCantidad = await Promise.all(
+    comercios.map(async (c) => ({
+      comercio: c,
+      cantidadProductos: (await getProductosPorComercio(c.id)).length,
+    }))
+  );
 
   return (
     <div>
@@ -23,8 +29,8 @@ export default async function RubroPage({
           <p className="text-[13px] text-ink-soft mt-0.5">Locales disponibles en San Luis Capital</p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {comercios.map((c, i) => (
-            <StoreCard key={c.id} comercio={c} alt={i % 2 === 1} />
+          {comerciosConCantidad.map(({ comercio, cantidadProductos }, i) => (
+            <StoreCard key={comercio.id} comercio={comercio} cantidadProductos={cantidadProductos} alt={i % 2 === 1} />
           ))}
         </div>
       </section>

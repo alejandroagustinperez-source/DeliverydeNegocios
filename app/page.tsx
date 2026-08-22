@@ -1,8 +1,16 @@
-import { rubros } from "@/lib/data";
+import { getRubros, getComerciosPorRubro } from "@/lib/queries";
 import { RubroCard } from "@/components/RubroCard";
 import { Icon } from "@/components/icons";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const rubros = await getRubros();
+  const rubrosConCantidad = await Promise.all(
+    rubros.map(async (r) => ({
+      rubro: r,
+      cantidadLocales: r.disponible ? (await getComerciosPorRubro(r.id)).length : 0,
+    }))
+  );
+
   return (
     <div>
       <div className="max-w-6xl mx-auto px-6 pt-5">
@@ -29,10 +37,10 @@ export default function HomePage() {
           </p>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {rubros
-            .sort((a, b) => a.orden - b.orden)
-            .map((r) => (
-              <RubroCard key={r.id} rubro={r} />
+          {rubrosConCantidad
+            .sort((a, b) => a.rubro.orden - b.rubro.orden)
+            .map(({ rubro, cantidadLocales }) => (
+              <RubroCard key={rubro.id} rubro={rubro} cantidadLocales={cantidadLocales} />
             ))}
         </div>
       </section>

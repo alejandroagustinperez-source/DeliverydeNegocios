@@ -4,13 +4,21 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Comercio } from "@/lib/types";
 import { Icon } from "./icons";
-import { isStoreOpen, getProductosPorComercio } from "@/lib/data";
+import { isStoreOpen } from "@/lib/data";
 
 function fmtHour(h: number) {
   return `${h}hs`;
 }
 
-export function StoreCard({ comercio, alt }: { comercio: Comercio; alt?: boolean }) {
+export function StoreCard({
+  comercio,
+  cantidadProductos,
+  alt,
+}: {
+  comercio: Comercio;
+  cantidadProductos: number;
+  alt?: boolean;
+}) {
   // El estado abierto/cerrado depende de la hora del navegador del cliente,
   // así que se calcula después del montaje para evitar mismatches de SSR.
   const [open, setOpen] = useState<boolean | null>(null);
@@ -20,8 +28,6 @@ export function StoreCard({ comercio, alt }: { comercio: Comercio; alt?: boolean
     const id = setInterval(() => setOpen(isStoreOpen(comercio.horario)), 60_000);
     return () => clearInterval(id);
   }, [comercio.horario]);
-
-  const cantidadProductos = getProductosPorComercio(comercio.id).length;
 
   return (
     <div className="bg-white/92 backdrop-blur-sm border border-border rounded-2xl overflow-hidden flex flex-col transition hover:shadow-lg hover:shadow-brand-blue/10 hover:-translate-y-0.5 hover:border-brand-blue/25">

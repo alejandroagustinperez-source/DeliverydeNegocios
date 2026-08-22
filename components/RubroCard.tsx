@@ -1,11 +1,8 @@
 import Link from "next/link";
 import { Rubro } from "@/lib/types";
 import { Icon } from "./icons";
-import { getComerciosPorRubro } from "@/lib/data";
 
-export function RubroCard({ rubro }: { rubro: Rubro }) {
-  const cantidadLocales = getComerciosPorRubro(rubro.id).length;
-
+export function RubroCard({ rubro, cantidadLocales }: { rubro: Rubro; cantidadLocales: number }) {
   const content = (
     <div
       className={`relative bg-white/90 backdrop-blur-sm border border-border rounded-2xl p-5 flex flex-col gap-2.5 transition ${

@@ -44,6 +44,7 @@ export async function getComerciosPorRubro(rubroId: string): Promise<Comercio[]>
     rubroId: c.rubro_id,
     nombre: c.nombre,
     direccion: c.direccion,
+    telefono: c.telefono ?? undefined,
     horario: { apertura: Number(c.horario_apertura), cierre: Number(c.horario_cierre) },
     tags: [], // La tabla `comercios` todavía no tiene columna de tags — se puede sumar más adelante
     rating: c.rating ? Number(c.rating) : 5,
@@ -67,6 +68,7 @@ export async function getComercioById(comercioId: string): Promise<Comercio | un
     rubroId: data.rubro_id,
     nombre: data.nombre,
     direccion: data.direccion,
+    telefono: data.telefono ?? undefined,
     horario: { apertura: Number(data.horario_apertura), cierre: Number(data.horario_cierre) },
     tags: [],
     rating: data.rating ? Number(data.rating) : 5,

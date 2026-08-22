@@ -22,6 +22,7 @@ export interface Comercio {
   rubroId: string;
   nombre: string;
   direccion: string;
+  telefono?: string;
   horario: Horario;
   tags: string[];
   rating: number;

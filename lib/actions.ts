@@ -93,11 +93,15 @@ async function createOrderForStore(params: CreateOrderGroupParams): Promise<Crea
     .map((i) => `• ${i.nombre} x${i.cantidad} — $ ${(i.precio * i.cantidad).toLocaleString("es-AR")}`)
     .join("\n");
   const mensaje = [
-    `🛵 *Pedido nuevo* — ${comercio?.nombre ?? params.comercioId}`,
+    `🛵 *Pedido nuevo*`,
     "",
-    `Cliente: ${params.clienteNombre}`,
-    `Teléfono: ${params.clienteTelefono}`,
-    `Entregar en: ${params.direccionEntrega}`,
+    `*Comercio:* ${comercio?.nombre ?? params.comercioId}`,
+    comercio?.direccion ? `*Dirección del comercio:* ${comercio.direccion}` : null,
+    comercio?.telefono ? `*Tel. del comercio:* ${comercio.telefono}` : null,
+    "",
+    `*Cliente:* ${params.clienteNombre}`,
+    `*Teléfono cliente:* ${params.clienteTelefono}`,
+    `*Entregar en:* ${params.direccionEntrega}`,
     "",
     "Productos:",
     detalleProductos,
@@ -107,7 +111,9 @@ async function createOrderForStore(params: CreateOrderGroupParams): Promise<Crea
     `Total: $ ${totalPedido.toLocaleString("es-AR")}`,
     "",
     `ID pedido: ${pedidoId.slice(0, 8)}`,
-  ].join("\n");
+  ]
+    .filter((line) => line !== null)
+    .join("\n");
 
   await notificarWhatsapp(mensaje);
 

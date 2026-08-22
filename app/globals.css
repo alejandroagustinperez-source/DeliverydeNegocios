@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+:root {
+  --brand-blue: #233A8F;
+  --brand-blue-dark: #182a68;
+  --accent: #FF7A1A;
+  --accent-dark: #e0650a;
+  --ink: #1B1F2A;
+  --ink-soft: #5B6270;
+  --bg: #F3F4F8;
+  --border: #E4E7EE;
+  --success: #158A45;
+}
+
+@theme inline {
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-blue-dark: var(--brand-blue-dark);
+  --color-accent: var(--accent);
+  --color-accent-dark: var(--accent-dark);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-bg: var(--bg);
+  --color-border: var(--border);
+  --color-success: var(--success);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-manrope);
+}
+
+body {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(35, 58, 143, 0.06), transparent 40%),
+    radial-gradient(circle at 85% 15%, rgba(255, 122, 26, 0.05), transparent 35%);
+  background-attachment: fixed;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-manrope), sans-serif;
+}

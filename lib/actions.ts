@@ -90,8 +90,14 @@ async function createOrderForStore(params: CreateOrderGroupParams): Promise<Crea
   // Notificación de WhatsApp (no bloquea ni hace fallar el pedido si falla).
   const comercio = await getComercioById(params.comercioId);
   const detalleProductos = params.items
-    .map((i) => `• ${i.nombre} x${i.cantidad} — $ ${(i.precio * i.cantidad).toLocaleString("es-AR")}`)
-    .join("\n");
+    .map((i) => {
+      const subtotalItem = i.precio * i.cantidad;
+      const unidad = i.cantidad === 1 ? "unidad" : "unidades";
+      return `• ${i.nombre}\n   ${i.cantidad} ${unidad} x $ ${i.precio.toLocaleString(
+        "es-AR"
+      )} = $ ${subtotalItem.toLocaleString("es-AR")}`;
+    })
+    .join("\n\n");
   const mensaje = [
     `🛵 *Pedido nuevo*`,
     "",

@@ -79,6 +79,31 @@ export function calcularCostoEnvio(distanciaKm: number): number {
   return TARIFA_BASE + kmExtra * TARIFA_POR_KM_ADICIONAL;
 }
 
+/**
+ * Zonas de entrega con distancia de referencia fija (km aproximados desde
+ * el centro de San Luis Capital hasta cada localidad). Se usa en vez de
+ * calcular la distancia real con una API externa: es gratis, instantáneo,
+ * y no depende de que el cliente escriba bien la dirección. "San Luis
+ * Capital" usa como referencia el punto más alejado dentro de la ciudad
+ * (Bv. Tobar García, altura 3ra rotonda), para no subestimar el envío a
+ * los barrios más lejanos de la capital.
+ */
+export interface Zona {
+  id: string;
+  nombre: string;
+  kmReferencia: number;
+}
+
+export const zonas: Zona[] = [
+  { id: "san_luis_capital", nombre: "San Luis Capital", kmReferencia: 6 },
+  { id: "la_punta", nombre: "La Punta", kmReferencia: 20 },
+  { id: "juana_koslay", nombre: "Juana Koslay", kmReferencia: 11 },
+  { id: "potrero_de_los_funes", nombre: "Potrero de los Funes", kmReferencia: 17 },
+  { id: "el_volcan", nombre: "El Volcán", kmReferencia: 19 },
+  { id: "cruz_de_piedra", nombre: "Cruz de Piedra", kmReferencia: 10 },
+  { id: "san_jeronimo", nombre: "San Jerónimo", kmReferencia: 20 },
+];
+
 /** Normaliza texto para búsqueda aproximada: minúsculas y sin acentos. */
 export function normalizeText(s: string): string {
   return s

@@ -2,7 +2,7 @@
 
 import { randomUUID } from "crypto";
 import { supabase } from "./supabase";
-import { calcularCostoEnvio } from "./data";
+import { calcularCostoEnvio, zonas } from "./data";
 import { getComercioById } from "./queries";
 import { notificarWhatsapp } from "./whatsapp";
 
@@ -19,6 +19,7 @@ interface CreateOrderGroupParams {
   clienteNombre: string;
   clienteTelefono: string;
   direccionEntrega: string;
+  zonaId: string;
 }
 
 interface CreateOrderResult {
@@ -33,10 +34,8 @@ interface CreateOrderResult {
  * agrupa el carrito por comercio y llama esta función una vez por grupo,
  * porque cada comercio implica un viaje de entrega distinto.
  *
- * La distancia real (para calcular el envío con precisión) todavía no está
- * conectada a un servicio de mapas — por ahora se usa una distancia de
- * referencia. Reemplazar `distanciaEstimadaKm` por el resultado de la API
- * de Google Maps Distance Matrix es parte de las tareas pendientes.
+ * El costo de envío se calcula con la zona/localidad elegida por el
+ * cliente (distancia de referencia fija), no con una API externa.
  */
 async function createOrderForStore(params: CreateOrderGroupParams): Promise<CreateOrderResult> {
   if (!supabase) {
@@ -47,9 +46,12 @@ async function createOrderForStore(params: CreateOrderGroupParams): Promise<Crea
     };
   }
 
+  const comercio = await getComercioById(params.comercioId);
+  const zona = zonas.find((z) => z.id === params.zonaId);
   const totalProductos = params.items.reduce((sum, i) => sum + i.precio * i.cantidad, 0);
-  const distanciaEstimadaKm = 3; // TODO: reemplazar por distancia real (Google Maps Distance Matrix API)
-  const costoEnvio = calcularCostoEnvio(distanciaEstimadaKm);
+
+  const distanciaKm = zona?.kmReferencia ?? 6; // fallback si por algún motivo no llega una zona válida
+  const costoEnvio = calcularCostoEnvio(distanciaKm);
   const totalPedido = totalProductos + costoEnvio;
   const pedidoId = randomUUID();
 
@@ -59,7 +61,8 @@ async function createOrderForStore(params: CreateOrderGroupParams): Promise<Crea
     cliente_nombre: params.clienteNombre,
     cliente_telefono: params.clienteTelefono,
     direccion_entrega: params.direccionEntrega,
-    distancia_km: distanciaEstimadaKm,
+    localidad: zona?.nombre ?? null,
+    distancia_km: distanciaKm,
     costo_envio: costoEnvio,
     total_productos: totalProductos,
     total_pedido: totalPedido,
@@ -88,7 +91,6 @@ async function createOrderForStore(params: CreateOrderGroupParams): Promise<Crea
   }
 
   // Notificación de WhatsApp (no bloquea ni hace fallar el pedido si falla).
-  const comercio = await getComercioById(params.comercioId);
   const detalleProductos = params.items
     .map((i) => {
       const subtotalItem = i.precio * i.cantidad;
@@ -107,13 +109,14 @@ async function createOrderForStore(params: CreateOrderGroupParams): Promise<Crea
     "",
     `*Cliente:* ${params.clienteNombre}`,
     `*Teléfono cliente:* ${params.clienteTelefono}`,
+    `*Localidad:* ${zona?.nombre ?? "No especificada"}`,
     `*Entregar en:* ${params.direccionEntrega}`,
     "",
     "Productos:",
     detalleProductos,
     "",
     `Subtotal productos: $ ${totalProductos.toLocaleString("es-AR")}`,
-    `Envío estimado: $ ${costoEnvio.toLocaleString("es-AR")}`,
+    `Envío (${distanciaKm} km ref.): $ ${costoEnvio.toLocaleString("es-AR")}`,
     `Total: $ ${totalPedido.toLocaleString("es-AR")}`,
     "",
     `ID pedido: ${pedidoId.slice(0, 8)}`,
@@ -139,6 +142,7 @@ export interface CheckoutParams {
   clienteNombre: string;
   clienteTelefono: string;
   direccionEntrega: string;
+  zonaId: string;
 }
 
 export interface CheckoutResult {
@@ -168,6 +172,7 @@ export async function checkoutCart(params: CheckoutParams): Promise<CheckoutResu
         clienteNombre: params.clienteNombre,
         clienteTelefono: params.clienteTelefono,
         direccionEntrega: params.direccionEntrega,
+        zonaId: params.zonaId,
       })
     )
   );

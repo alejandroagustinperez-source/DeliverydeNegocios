@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Icon } from "./icons";
 import { useCart } from "./CartProvider";
-import { comercios } from "@/lib/data";
+import { comercios, zonas, calcularCostoEnvio } from "@/lib/data";
 import { checkoutCart } from "@/lib/actions";
 
 type Step = "cart" | "form" | "submitting" | "success" | "error";
@@ -14,17 +14,28 @@ export function CartDrawer() {
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [direccion, setDireccion] = useState("");
+  const [zonaId, setZonaId] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [pedidosCreados, setPedidosCreados] = useState(0);
 
+  const subtotalPorComercio = items.reduce<Record<string, number>>((acc, item) => {
+    acc[item.comercioId] = (acc[item.comercioId] ?? 0) + item.precio * item.cantidad;
+    return acc;
+  }, {});
+  const comerciosEnCarrito = Array.from(new Set(items.map((i) => i.comercioId)));
+  const zonaSeleccionada = zonas.find((z) => z.id === zonaId);
+  const envioPorComercio = zonaSeleccionada ? calcularCostoEnvio(zonaSeleccionada.kmReferencia) : 0;
+  const envioTotal = zonaSeleccionada ? envioPorComercio * comerciosEnCarrito.length : 0;
+  const totalConEnvio = total + envioTotal;
+
   function handleClose() {
     setOpen(false);
-    // Si ya se confirmó el pedido, al cerrar reseteamos el drawer al estado inicial.
     if (step === "success") {
       setStep("cart");
       setNombre("");
       setTelefono("");
       setDireccion("");
+      setZonaId("");
     }
   }
 
@@ -44,6 +55,7 @@ export function CartDrawer() {
       clienteNombre: nombre,
       clienteTelefono: telefono,
       direccionEntrega: direccion,
+      zonaId,
     });
 
     if (result.success) {
@@ -148,7 +160,7 @@ export function CartDrawer() {
                 <span>${total.toLocaleString("es-AR")}</span>
               </div>
               <p className="text-[11px] text-ink-soft mb-3">
-                El costo de envío se calcula en el siguiente paso, según cada comercio.
+                El costo de envío se calcula en el siguiente paso, según tu localidad.
               </p>
               <button
                 disabled={items.length === 0}
@@ -187,6 +199,24 @@ export function CartDrawer() {
                 />
               </div>
               <div>
+                <label className="text-xs font-semibold text-ink-soft block mb-1.5">Localidad</label>
+                <select
+                  required
+                  value={zonaId}
+                  onChange={(e) => setZonaId(e.target.value)}
+                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm outline-none focus:border-brand-blue bg-white"
+                >
+                  <option value="" disabled>
+                    Elegí tu localidad...
+                  </option>
+                  {zonas.map((z) => (
+                    <option key={z.id} value={z.id}>
+                      {z.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
                 <label className="text-xs font-semibold text-ink-soft block mb-1.5">Dirección de entrega</label>
                 <textarea
                   required
@@ -197,6 +227,31 @@ export function CartDrawer() {
                   placeholder="Calle, número, barrio, referencias..."
                 />
               </div>
+
+              {zonaSeleccionada && (
+                <div className="border border-border rounded-lg p-3.5 flex flex-col gap-2.5">
+                  <p className="text-xs font-semibold text-ink">Costo de envío</p>
+                  {comerciosEnCarrito.map((comercioId) => {
+                    const comercio = comercios.find((c) => c.id === comercioId);
+                    return (
+                      <div key={comercioId} className="text-xs">
+                        <div className="flex justify-between text-ink-soft mb-0.5">
+                          <span>{comercio?.nombre ?? "Comercio"} — productos</span>
+                          <span>${(subtotalPorComercio[comercioId] ?? 0).toLocaleString("es-AR")}</span>
+                        </div>
+                        <div className="flex justify-between text-ink-soft">
+                          <span>{comercio?.nombre ?? "Comercio"} — envío</span>
+                          <span>${envioPorComercio.toLocaleString("es-AR")}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div className="flex justify-between font-bold text-sm border-t border-border pt-2">
+                    <span>Total</span>
+                    <span>${totalConEnvio.toLocaleString("es-AR")}</span>
+                  </div>
+                </div>
+              )}
 
               <div className="bg-bg rounded-lg p-3 text-xs text-ink-soft leading-relaxed">
                 Si tenés productos de más de un comercio, se van a crear pedidos

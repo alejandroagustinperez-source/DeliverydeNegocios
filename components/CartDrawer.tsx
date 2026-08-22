@@ -5,6 +5,7 @@ import { Icon } from "./icons";
 import { useCart } from "./CartProvider";
 import { comercios, zonas, calcularCostoEnvio } from "@/lib/data";
 import { checkoutCart } from "@/lib/actions";
+import { buildWaMeLink } from "@/lib/whatsappLink";
 
 type Step = "cart" | "form" | "submitting" | "success" | "error";
 
@@ -17,6 +18,7 @@ export function CartDrawer() {
   const [zonaId, setZonaId] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [pedidosCreados, setPedidosCreados] = useState(0);
+  const [linkConfirmacion, setLinkConfirmacion] = useState<string | null>(null);
 
   const subtotalPorComercio = items.reduce<Record<string, number>>((acc, item) => {
     acc[item.comercioId] = (acc[item.comercioId] ?? 0) + item.precio * item.cantidad;
@@ -60,6 +62,26 @@ export function CartDrawer() {
 
     if (result.success) {
       setPedidosCreados(result.results.length);
+
+      // Armamos el mensaje ANTES de vaciar el carrito, con el detalle real.
+      const contacto = process.env.NEXT_PUBLIC_WHATSAPP_CONTACTO;
+      if (contacto) {
+        const detalle = items.map((i) => `- ${i.nombre} x${i.cantidad}`).join("\n");
+        const zona = zonas.find((z) => z.id === zonaId);
+        const mensaje = [
+          "Hola! Quiero confirmar mi pedido:",
+          "",
+          detalle,
+          "",
+          `Localidad: ${zona?.nombre ?? ""}`,
+          `Dirección: ${direccion}`,
+          `Total productos: $${total.toLocaleString("es-AR")}`,
+          "",
+          "¡Gracias!",
+        ].join("\n");
+        setLinkConfirmacion(buildWaMeLink(contacto, mensaje));
+      }
+
       setStep("success");
       clearItems();
     } else {
@@ -292,6 +314,17 @@ export function CartDrawer() {
             <p className="text-sm text-ink-soft">
               Te vamos a contactar al teléfono que dejaste para coordinar la entrega.
             </p>
+            {linkConfirmacion && (
+              <a
+                href={linkConfirmacion}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-[#25D366] hover:brightness-95 transition text-white font-bold px-5 py-2.5 rounded-lg text-sm"
+              >
+                <Icon name="today" className="w-4 h-4" />
+                Confirmar por WhatsApp
+              </a>
+            )}
             <button
               onClick={handleClose}
               className="mt-2 bg-brand-blue hover:bg-brand-blue-dark transition text-white font-bold px-5 py-2.5 rounded-lg text-sm"

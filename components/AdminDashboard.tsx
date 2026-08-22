@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { actualizarEstadoPedido, PedidoAdmin } from "@/app/admin/actions";
+import { buildWaMeLink, MENSAJES_POR_ESTADO } from "@/lib/whatsappLink";
 
 const ESTADOS = [
   { id: "pendiente", label: "Pendiente" },
@@ -147,7 +148,7 @@ export function AdminDashboard({ pedidosIniciales }: { pedidosIniciales: PedidoA
                 </div>
               </div>
 
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-2 flex-wrap items-center">
                 {ESTADOS.filter((e) => e.id !== p.estado).map((e) => (
                   <button
                     key={e.id}
@@ -158,6 +159,19 @@ export function AdminDashboard({ pedidosIniciales }: { pedidosIniciales: PedidoA
                     {actualizando === p.id ? "..." : `Marcar como ${e.label.toLowerCase()}`}
                   </button>
                 ))}
+                {p.cliente_telefono && (
+                  <a
+                    href={buildWaMeLink(
+                      p.cliente_telefono,
+                      (MENSAJES_POR_ESTADO[p.estado] ?? MENSAJES_POR_ESTADO.pendiente)(p.id.slice(0, 8))
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-semibold border border-[#25D366] text-[#1a9e4f] rounded-lg px-3 py-1.5 hover:bg-[#25D366]/10 transition ml-auto"
+                  >
+                    Escribirle por WhatsApp
+                  </a>
+                )}
               </div>
             </div>
           ))}

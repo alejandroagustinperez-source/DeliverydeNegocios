@@ -315,25 +315,29 @@ export function CartDrawer() {
               {pedidosCreados > 1 ? `${pedidosCreados} pedidos confirmados` : "Pedido confirmado"}
             </h4>
             <p className="text-sm text-ink-soft">
-              Te vamos a contactar al teléfono que dejaste para coordinar la entrega.
+              {linkConfirmacion
+                ? "Presioná el botón para confirmarnos tu pedido por WhatsApp."
+                : "Te vamos a contactar al teléfono que dejaste para coordinar la entrega."}
             </p>
-            {linkConfirmacion && (
+            {linkConfirmacion ? (
               <a
                 href={linkConfirmacion}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={handleClose}
                 className="flex items-center gap-2 bg-[#25D366] hover:brightness-95 transition text-white font-bold px-5 py-2.5 rounded-lg text-sm"
               >
                 <Icon name="today" className="w-4 h-4" />
                 Confirmar por WhatsApp
               </a>
+            ) : (
+              <button
+                onClick={handleClose}
+                className="mt-2 bg-brand-blue hover:bg-brand-blue-dark transition text-white font-bold px-5 py-2.5 rounded-lg text-sm"
+              >
+                Listo
+              </button>
             )}
-            <button
-              onClick={handleClose}
-              className="mt-2 bg-brand-blue hover:bg-brand-blue-dark transition text-white font-bold px-5 py-2.5 rounded-lg text-sm"
-            >
-              Listo
-            </button>
           </div>
         )}
       </aside>

@@ -98,7 +98,7 @@ export function CartDrawer() {
         {/* Paso 1: carrito */}
         {(step === "cart" || step === "error") && (
           <>
-            <div className="flex-1 overflow-y-auto px-5 py-4">
+            <div className="flex-1 overflow-y-auto min-h-0 px-5 py-4">
               {items.length === 0 ? (
                 <p className="text-ink-soft text-sm text-center mt-10">Todavía no agregaste productos</p>
               ) : (
@@ -175,8 +175,8 @@ export function CartDrawer() {
 
         {/* Paso 2: formulario de datos de entrega */}
         {(step === "form" || step === "submitting") && (
-          <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
-            <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-3.5">
+          <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+            <div className="flex-1 overflow-y-auto min-h-0 px-5 py-4 flex flex-col gap-3.5">
               <div>
                 <label className="text-xs font-semibold text-ink-soft block mb-1.5">Nombre y apellido</label>
                 <input

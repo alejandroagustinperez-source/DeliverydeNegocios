@@ -37,10 +37,16 @@ function estadoColor(estado: string) {
 export function AdminDashboard({ pedidosIniciales }: { pedidosIniciales: PedidoAdmin[] }) {
   const router = useRouter();
   const [filtro, setFiltro] = useState<string>("pendiente");
+  const [busqueda, setBusqueda] = useState("");
   const [actualizando, setActualizando] = useState<string | null>(null);
 
-  const pedidosFiltrados =
-    filtro === "todos" ? pedidosIniciales : pedidosIniciales.filter((p) => p.estado === filtro);
+  const buscando = busqueda.trim().length > 0;
+
+  const pedidosFiltrados = buscando
+    ? pedidosIniciales.filter((p) => p.id.toLowerCase().includes(busqueda.trim().toLowerCase()))
+    : filtro === "todos"
+    ? pedidosIniciales
+    : pedidosIniciales.filter((p) => p.estado === filtro);
 
   const conteos: Record<string, number> = {
     pendiente: pedidosIniciales.filter((p) => p.estado === "pendiente").length,
@@ -63,7 +69,17 @@ export function AdminDashboard({ pedidosIniciales }: { pedidosIniciales: PedidoA
 
   return (
     <div>
-      <div className="flex gap-2 mb-5 flex-wrap">
+      <div className="mb-4">
+        <input
+          type="text"
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          placeholder="Buscar por ID de pedido (ej: d6589ccd)..."
+          className="w-full sm:w-80 border border-border rounded-lg px-3 py-2.5 text-sm outline-none focus:border-brand-blue bg-white"
+        />
+      </div>
+
+      <div className={`flex gap-2 mb-5 flex-wrap ${buscando ? "opacity-40 pointer-events-none" : ""}`}>
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -80,7 +96,9 @@ export function AdminDashboard({ pedidosIniciales }: { pedidosIniciales: PedidoA
       </div>
 
       {pedidosFiltrados.length === 0 ? (
-        <p className="text-sm text-ink-soft text-center py-16">No hay pedidos en este estado.</p>
+        <p className="text-sm text-ink-soft text-center py-16">
+          {buscando ? "No encontramos ningún pedido con ese ID." : "No hay pedidos en este estado."}
+        </p>
       ) : (
         <div className="flex flex-col gap-4">
           {pedidosFiltrados.map((p) => (
@@ -88,7 +106,9 @@ export function AdminDashboard({ pedidosIniciales }: { pedidosIniciales: PedidoA
               <div className="flex justify-between items-start mb-3 flex-wrap gap-2">
                 <div>
                   <p className="font-bold text-sm">{p.comercio?.nombre ?? "Comercio"}</p>
-                  <p className="text-xs text-ink-soft">{new Date(p.creado_en).toLocaleString("es-AR")}</p>
+                  <p className="text-xs text-ink-soft">
+                    {new Date(p.creado_en).toLocaleString("es-AR")} · ID: {p.id.slice(0, 8)}
+                  </p>
                 </div>
                 <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full uppercase ${estadoColor(p.estado)}`}>
                   {p.estado.replace("_", " ")}

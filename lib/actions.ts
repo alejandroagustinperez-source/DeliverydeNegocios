@@ -3,9 +3,12 @@
 import { randomUUID } from "crypto";
 import { supabase } from "./supabase";
 import { calcularCostoEnvio } from "./data";
+import { getComercioById } from "./queries";
+import { notificarWhatsapp } from "./whatsapp";
 
 interface OrderItemInput {
   productoId: string;
+  nombre: string;
   precio: number;
   cantidad: number;
 }
@@ -84,11 +87,36 @@ async function createOrderForStore(params: CreateOrderGroupParams): Promise<Crea
     return { success: false, comercioId: params.comercioId, error: itemsError.message };
   }
 
+  // Notificación de WhatsApp (no bloquea ni hace fallar el pedido si falla).
+  const comercio = await getComercioById(params.comercioId);
+  const detalleProductos = params.items
+    .map((i) => `• ${i.nombre} x${i.cantidad} — $ ${(i.precio * i.cantidad).toLocaleString("es-AR")}`)
+    .join("\n");
+  const mensaje = [
+    `🛵 *Pedido nuevo* — ${comercio?.nombre ?? params.comercioId}`,
+    "",
+    `Cliente: ${params.clienteNombre}`,
+    `Teléfono: ${params.clienteTelefono}`,
+    `Entregar en: ${params.direccionEntrega}`,
+    "",
+    "Productos:",
+    detalleProductos,
+    "",
+    `Subtotal productos: $ ${totalProductos.toLocaleString("es-AR")}`,
+    `Envío estimado: $ ${costoEnvio.toLocaleString("es-AR")}`,
+    `Total: $ ${totalPedido.toLocaleString("es-AR")}`,
+    "",
+    `ID pedido: ${pedidoId.slice(0, 8)}`,
+  ].join("\n");
+
+  await notificarWhatsapp(mensaje);
+
   return { success: true, orderId: pedidoId, comercioId: params.comercioId };
 }
 
 export interface CheckoutCartItem {
   productoId: string;
+  nombre: string;
   comercioId: string;
   precio: number;
   cantidad: number;
@@ -111,7 +139,12 @@ export async function checkoutCart(params: CheckoutParams): Promise<CheckoutResu
   const grupos = new Map<string, OrderItemInput[]>();
   for (const item of params.items) {
     const list = grupos.get(item.comercioId) ?? [];
-    list.push({ productoId: item.productoId, precio: item.precio, cantidad: item.cantidad });
+    list.push({
+      productoId: item.productoId,
+      nombre: item.nombre,
+      precio: item.precio,
+      cantidad: item.cantidad,
+    });
     grupos.set(item.comercioId, list);
   }
 

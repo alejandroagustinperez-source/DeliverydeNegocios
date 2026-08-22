@@ -36,6 +36,7 @@ export function CartDrawer() {
     const result = await checkoutCart({
       items: items.map((i) => ({
         productoId: i.id,
+        nombre: i.nombre,
         comercioId: i.comercioId,
         precio: i.precio,
         cantidad: i.cantidad,

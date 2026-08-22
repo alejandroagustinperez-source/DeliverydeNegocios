@@ -57,6 +57,24 @@ export async function getComercio(rubroId: string, comercioId: string): Promise<
   return list.find((c) => c.id === comercioId);
 }
 
+/** Busca un comercio solo por su ID, sin necesitar saber a qué rubro pertenece. */
+export async function getComercioById(comercioId: string): Promise<Comercio | undefined> {
+  if (!supabase) return comerciosEjemplo.find((c) => c.id === comercioId);
+  const { data, error } = await supabase.from("comercios").select("*").eq("id", comercioId).single();
+  if (error || !data) return comerciosEjemplo.find((c) => c.id === comercioId);
+  return {
+    id: data.id,
+    rubroId: data.rubro_id,
+    nombre: data.nombre,
+    direccion: data.direccion,
+    horario: { apertura: Number(data.horario_apertura), cierre: Number(data.horario_cierre) },
+    tags: [],
+    rating: data.rating ? Number(data.rating) : 5,
+    latitud: data.latitud ?? undefined,
+    longitud: data.longitud ?? undefined,
+  };
+}
+
 export async function getProductosPorComercio(comercioId: string): Promise<Producto[]> {
   if (!supabase) return productosEjemplo.filter((p) => p.comercioId === comercioId);
   const { data, error } = await supabase

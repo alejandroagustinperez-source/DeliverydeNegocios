@@ -37,3 +37,14 @@ body {
 h1, h2, h3 {
   font-family: var(--font-manrope), sans-serif;
 }
+
+/* iOS hace zoom automático al enfocar un campo con letra menor a 16px.
+   Forzamos 16px solo en pantallas chicas para evitar ese salto molesto,
+   sin tocar el tamaño de letra en desktop. */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

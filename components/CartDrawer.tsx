@@ -103,7 +103,7 @@ export function CartDrawer() {
         onClick={handleClose}
       />
       <aside
-        className={`fixed top-0 right-0 h-full w-[380px] max-w-[92vw] bg-white/97 backdrop-blur-md border-l border-border z-40 flex flex-col transition-transform duration-300 ${
+        className={`fixed top-0 right-0 h-dvh w-[380px] max-w-[92vw] bg-white/97 backdrop-blur-md border-l border-border z-40 flex flex-col transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -179,7 +179,7 @@ export function CartDrawer() {
               )}
             </div>
 
-            <div className="px-5 py-4 border-t border-border">
+            <div className="px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] border-t border-border">
               <div className="flex justify-between font-bold mb-3">
                 <span>Total productos</span>
                 <span>${total.toLocaleString("es-AR")}</span>
@@ -285,7 +285,7 @@ export function CartDrawer() {
               </div>
             </div>
 
-            <div className="px-5 py-4 border-t border-border flex flex-col gap-2">
+            <div className="px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] border-t border-border flex flex-col gap-2">
               <button
                 type="submit"
                 disabled={step === "submitting"}

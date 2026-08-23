@@ -10,7 +10,7 @@ export default async function AdminPage() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-xl font-bold">Panel de pedidos</h1>
-            <p className="text-xs text-ink-soft mt-0.5">Marketplace SL</p>
+            <p className="text-xs text-ink-soft mt-0.5">Chasqui</p>
           </div>
           <form action={logoutAdmin}>
             <button type="submit" className="text-xs text-ink-soft hover:text-accent-dark">

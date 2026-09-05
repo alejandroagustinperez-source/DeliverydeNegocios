@@ -8,7 +8,7 @@ export function Breadcrumb({
 }) {
   return (
     <div className="max-w-6xl mx-auto px-6 pt-3.5 flex items-center gap-1.5 text-[13px] text-ink-soft">
-      <Link href="/" className="hover:text-brand-blue hover:underline">
+      <Link href="/tienda" className="hover:text-brand-blue hover:underline">
         Inicio
       </Link>
       {items.map((item, i) => (

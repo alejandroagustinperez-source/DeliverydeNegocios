@@ -177,3 +177,43 @@ export async function buscarGlobal(query: string): Promise<ResultadoBusqueda> {
 
   return { comercios, productos };
 }
+
+/**
+ * Trae la CANTIDAD de productos activos por cada comercio, en una sola
+ * consulta a Supabase (en vez de una consulta separada por cada comercio,
+ * que es más lento cuantos más locales haya en el rubro).
+ */
+export async function getConteoProductosPorComercios(
+  comercioIds: string[]
+): Promise<Record<string, number>> {
+  if (comercioIds.length === 0) return {};
+
+  if (!supabase) {
+    const conteo: Record<string, number> = {};
+    for (const id of comercioIds) {
+      conteo[id] = productosEjemplo.filter((p) => p.comercioId === id).length;
+    }
+    return conteo;
+  }
+
+  const { data, error } = await supabase
+    .from("productos")
+    .select("comercio_id")
+    .in("comercio_id", comercioIds)
+    .eq("activo", true);
+
+  if (error || !data) {
+    const conteo: Record<string, number> = {};
+    for (const id of comercioIds) {
+      conteo[id] = productosEjemplo.filter((p) => p.comercioId === id).length;
+    }
+    return conteo;
+  }
+
+  const conteo: Record<string, number> = {};
+  for (const id of comercioIds) conteo[id] = 0;
+  for (const row of data as Array<{ comercio_id: string }>) {
+    conteo[row.comercio_id] = (conteo[row.comercio_id] ?? 0) + 1;
+  }
+  return conteo;
+}

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getRubro, getComerciosPorRubro, getProductosPorComercio } from "@/lib/queries";
+import { getRubro, getComerciosPorRubro, getConteoProductosPorComercios } from "@/lib/queries";
 import { StoreCard } from "@/components/StoreCard";
 import { Breadcrumb } from "@/components/Breadcrumb";
 
@@ -9,16 +9,17 @@ export default async function RubroPage({
   params: Promise<{ rubroId: string }>;
 }) {
   const { rubroId } = await params;
-  const rubro = await getRubro(rubroId);
+
+  // Estas dos consultas no dependen una de la otra, así que las pedimos
+  // al mismo tiempo en vez de esperar una para recién pedir la otra.
+  const [rubro, comercios] = await Promise.all([
+    getRubro(rubroId),
+    getComerciosPorRubro(rubroId),
+  ]);
+
   if (!rubro || !rubro.disponible) notFound();
 
-  const comercios = await getComerciosPorRubro(rubroId);
-  const comerciosConCantidad = await Promise.all(
-    comercios.map(async (c) => ({
-      comercio: c,
-      cantidadProductos: (await getProductosPorComercio(c.id)).length,
-    }))
-  );
+  const conteos = await getConteoProductosPorComercios(comercios.map((c) => c.id));
 
   return (
     <div>
@@ -29,8 +30,13 @@ export default async function RubroPage({
           <p className="text-[13px] text-ink-soft mt-0.5">Locales disponibles en San Luis Capital</p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {comerciosConCantidad.map(({ comercio, cantidadProductos }, i) => (
-            <StoreCard key={comercio.id} comercio={comercio} cantidadProductos={cantidadProductos} alt={i % 2 === 1} />
+          {comercios.map((comercio, i) => (
+            <StoreCard
+              key={comercio.id}
+              comercio={comercio}
+              cantidadProductos={conteos[comercio.id] ?? 0}
+              alt={i % 2 === 1}
+            />
           ))}
         </div>
       </section>

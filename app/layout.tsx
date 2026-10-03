@@ -4,6 +4,7 @@ import "./globals.css";
 import { CartProvider } from "@/components/CartProvider";
 import { Header } from "@/components/Header";
 import { CartDrawer } from "@/components/CartDrawer";
+import { Footer } from "@/components/Footer";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -38,9 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <CartProvider>
           <Header />
           {children}
-          <p className="max-w-6xl mx-auto px-6 pb-8 text-xs text-ink-soft text-center">
-            MVP de referencia — rubros, locales, catálogo, horarios y precios son datos de ejemplo.
-          </p>
+          <Footer />
           <CartDrawer />
         </CartProvider>
       </body>

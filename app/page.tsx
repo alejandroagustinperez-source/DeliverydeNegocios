@@ -51,6 +51,9 @@ const stats = [
   { big: `${zonas.length}`, texto: "Localidades cubiertas: San Luis Capital y alrededores." },
 ];
 
+// Zonas ordenadas de la más cercana a la más lejana, para la tabla de cobertura.
+const zonasOrdenadas = [...zonas].sort((a, b) => a.kmReferencia - b.kmReferencia);
+
 export default function HomePage() {
   const contacto = process.env.NEXT_PUBLIC_WHATSAPP_CONTACTO;
   const linkWhatsapp = contacto
@@ -178,6 +181,50 @@ export default function HomePage() {
                 <p className="text-ink-soft text-sm leading-relaxed">{p.texto}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Zonas de cobertura */}
+      <section className="bg-bg px-6 py-16 md:py-20">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-brand-blue font-bold text-xs uppercase tracking-wide mb-2">Cobertura</p>
+          <h2 className="text-2xl md:text-[30px] font-bold mb-3 max-w-md">
+            ¿Cuánto sale el envío a tu localidad?
+          </h2>
+          <p className="text-ink-soft text-[15px] leading-relaxed max-w-lg mb-8">
+            El precio de envío ya está calculado para cada localidad — sin sorpresas al
+            confirmar tu pedido.
+          </p>
+          <div className="bg-white border border-border rounded-2xl overflow-hidden">
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr>
+                  <th className="bg-brand-blue text-white text-left px-5 py-3.5 font-bold text-xs uppercase tracking-wide">
+                    Localidad
+                  </th>
+                  <th className="bg-brand-blue text-white text-left px-5 py-3.5 font-bold text-xs uppercase tracking-wide">
+                    Distancia
+                  </th>
+                  <th className="bg-brand-blue text-white text-right px-5 py-3.5 font-bold text-xs uppercase tracking-wide">
+                    Costo de envío
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {zonasOrdenadas.map((z, i) => (
+                  <tr key={z.id} className={i % 2 === 1 ? "bg-bg" : ""}>
+                    <td className="px-5 py-3.5 border-b border-border font-bold">{z.nombre}</td>
+                    <td className="px-5 py-3.5 border-b border-border text-ink-soft">
+                      {z.kmReferencia} km
+                    </td>
+                    <td className="px-5 py-3.5 border-b border-border text-right font-extrabold text-brand-blue">
+                      ${calcularCostoEnvio(z.kmReferencia).toLocaleString("es-AR")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
